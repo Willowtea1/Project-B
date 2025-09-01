@@ -1,3 +1,5 @@
+<!-- frontend/src/views/Chatview.vue -->
+
 <template>
   <v-container fluid>
     <v-row align="center" justify="center" class="mb-4">

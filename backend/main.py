@@ -1,3 +1,5 @@
+# backend/main.py
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 import os
@@ -10,11 +12,11 @@ load_dotenv()
 app = FastAPI()
 
 
-class Ask(BaseModel):
-    text: str
+# class Ask(BaseModel):
+#     text: str
 
 origins = [
-    "http://localhost:5173"
+    "http://localhost:5174"
 ]
 
 app.add_middleware(
@@ -25,36 +27,53 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-## --- Google Gemini ---
+class TextInput(BaseModel):
+    text: str
+
+# Initialize the Gemini model
 GEMINI_KEY = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=GEMINI_KEY)
+model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
-@app.post("/api/ask/gemini")
-def ask_gemini(req: Ask):
-    model = genai.GenerativeModel("gemini-2.0-flash")
-    resp = model.generate_content(req.text)
-    return {"reply": resp.text}
+@app.post("/summarize")
+async def summarize(input: TextInput):
+    prompt = f"Summarize the following text in bullet points:\n\n{input.text}"
+    try:
+        response = model.generate_content(prompt)
+        return {"summary": response.text}
+    except Exception as e:
+        return {"error": str(e)}
+
+# ## --- Google Gemini ---
+# GEMINI_KEY = os.getenv("GOOGLE_API_KEY")
+# genai.configure(api_key=GEMINI_KEY)
+
+# @app.post("/api/ask/gemini")
+# def ask_gemini(req: Ask):
+#     model = genai.GenerativeModel("gemini-2.0-flash")
+#     resp = model.generate_content(req.text)
+#     return {"reply": resp.text}
 
 
-## --- OpenRouter (multi-provider) ---
-OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
+# ## --- OpenRouter (multi-provider) ---
+# OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
 
-@app.post("/api/ask/openrouter")
-def ask_openrouter(req: Ask):
-    resp = requests.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {OPENROUTER_KEY}",
-            "HTTP-Referer": "http://localhost:5173",  
-            "X-Title": "Project-A",
-        },
-        json={
-            "model": "deepseek/deepseek-r1:free", 
-            "messages": [{"role": "user", "content": req.text}],
-        },
-        timeout=60
-    ).json()
-    return {"reply": resp["choices"][0]["message"]["content"]}
+# @app.post("/api/ask/openrouter")
+# def ask_openrouter(req: Ask):
+#     resp = requests.post(
+#         "https://openrouter.ai/api/v1/chat/completions",
+#         headers={
+#             "Authorization": f"Bearer {OPENROUTER_KEY}",
+#             "HTTP-Referer": "http://localhost:5173",  
+#             "X-Title": "Project-A",
+#         },
+#         json={
+#             "model": "deepseek/deepseek-r1:free", 
+#             "messages": [{"role": "user", "content": req.text}],
+#         },
+#         timeout=60
+#     ).json()
+#     return {"reply": resp["choices"][0]["message"]["content"]}
 
 
 # ## --- OpenAI (commented out) ---
