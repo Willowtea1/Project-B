@@ -1,24 +1,25 @@
 <!-- frontend/src/App.vue -->
 
 <template>
-  <v-container>
-    <v-textarea v-model="inputText" label="Paste your text here" rows="10"></v-textarea>
+  <v-app>
+    <v-container>
+      <v-textarea
+        label="Enter text to summarize and categorize"
+        v-model="text"
+        rows="6"
+      ></v-textarea>
+      <v-btn color="primary" @click="submitText">Analyze</v-btn>
 
-    <v-btn color="primary" @click="submitText" :loading="loading"> Summarize </v-btn>
+      <div v-if="loading">Processing...</div>
 
-    <v-card v-if="summary" class="mt-4">
-      <v-card-title>Summary</v-card-title>
-      <v-card-text>
-        <ul>
-          <ul>
-            <li v-for="(point, index) in summaryPoints" :key="index">{{ point }}</li>
-          </ul>
-        </ul>
-      </v-card-text>
-    </v-card>
-
-    <v-alert v-if="error" type="error" class="mt-4">{{ error }}</v-alert>
-  </v-container>
+      <v-card v-if="result">
+        <v-card-title>Summary</v-card-title>
+        <v-card-text>{{ result.summary }}</v-card-text>
+        <v-card-title>Category</v-card-title>
+        <v-card-text>{{ result.category }}</v-card-text>
+      </v-card>
+    </v-container>
+  </v-app>
 </template>
 
 <script>
@@ -27,38 +28,26 @@ import axios from 'axios'
 export default {
   data() {
     return {
-      inputText: '',
-      summary: '',
-      error: '',
+      text: '',
+      result: null,
       loading: false,
     }
   },
   methods: {
     async submitText() {
+      if (!this.text.trim()) return alert('Text cannot be empty')
       this.loading = true
-      this.error = ''
-      this.summary = ''
       try {
-        const res = await axios.post('http://localhost:8000/summarize', {
-          text: this.inputText,
+        const res = await axios.post('http://127.0.0.1:8000/analyze', {
+          text: this.text,
         })
-        if (res.data.summary) this.summary = res.data.summary
-        else this.error = res.data.error || 'Unknown error'
+        this.result = res.data
       } catch (err) {
-        this.error = err.message
+        console.error(err)
+        alert('Error processing text')
       } finally {
         this.loading = false
       }
-    },
-  },
-  computed: {
-    summaryPoints() {
-      return this.summary
-        ? this.summary
-            .split('\n') // split by lines
-            .map((line) => line.replace(/^\*\s*/, '').trim()) // remove leading "* "
-            .filter((line) => line !== '') // remove empty lines
-        : []
     },
   },
 }

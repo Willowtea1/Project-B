@@ -1,22 +1,20 @@
 # backend/main.py
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import os
-import requests
+import google.generativeai as genai
 from dotenv import load_dotenv
-import google.generativeai as genai 
+import json
+import re
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
+
 app = FastAPI()
 
-
-# class Ask(BaseModel):
-#     text: str
-
 origins = [
-    "http://localhost:5174"
+    "http://localhost:5173"
 ]
 
 app.add_middleware(
@@ -27,74 +25,62 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class TextInput(BaseModel):
+# Configure Gemini API key
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+# Request model
+class AnalyzeRequest(BaseModel):
     text: str
 
-# Initialize the Gemini model
-GEMINI_KEY = os.getenv("GOOGLE_API_KEY")
-genai.configure(api_key=GEMINI_KEY)
-model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+# Response model
+class AnalyzeResponse(BaseModel):
+    summary: str
+    category: str
 
-@app.post("/summarize")
-async def summarize(input: TextInput):
-    prompt = f"Summarize the following text in bullet points:\n\n{input.text}"
+# Helper function to extract JSON safely from LLM output
+def extract_json(text: str) -> dict:
+    """
+    Extract the first JSON object from a string and return it as a dict.
+    Raises ValueError if no JSON object is found.
+    """
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if not match:
+        raise ValueError("No JSON object found in the model output")
+    return json.loads(match.group())
+
+# Endpoint
+@app.post("/analyze", response_model=AnalyzeResponse)
+async def analyze_text(req: AnalyzeRequest):
+    if not req.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+
+    prompt = f"""
+    You are an AI assistant. Given the following text, provide a concise summary (2-3 sentences)
+    and classify it into one of these categories: Business, Technology, Health, Entertainment, Others.
+
+    Text:
+    {req.text}
+
+    Respond **ONLY** in JSON format like this:
+    {{
+        "summary": "...",
+        "category": "..."
+    }}
+    """
+
     try:
+        # Create the model object
+        model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+        
+        # Generate response
         response = model.generate_content(prompt)
-        return {"summary": response.text}
+
+        # Safely extract JSON
+        result = extract_json(response.text)
+
+        return AnalyzeResponse(summary=result["summary"], category=result["category"])
+
+    except ValueError as ve:
+        raise HTTPException(status_code=500, detail=f"Failed to parse model output: {ve}")
     except Exception as e:
-        return {"error": str(e)}
-
-# ## --- Google Gemini ---
-# GEMINI_KEY = os.getenv("GOOGLE_API_KEY")
-# genai.configure(api_key=GEMINI_KEY)
-
-# @app.post("/api/ask/gemini")
-# def ask_gemini(req: Ask):
-#     model = genai.GenerativeModel("gemini-2.0-flash")
-#     resp = model.generate_content(req.text)
-#     return {"reply": resp.text}
-
-
-# ## --- OpenRouter (multi-provider) ---
-# OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
-
-# @app.post("/api/ask/openrouter")
-# def ask_openrouter(req: Ask):
-#     resp = requests.post(
-#         "https://openrouter.ai/api/v1/chat/completions",
-#         headers={
-#             "Authorization": f"Bearer {OPENROUTER_KEY}",
-#             "HTTP-Referer": "http://localhost:5173",  
-#             "X-Title": "Project-A",
-#         },
-#         json={
-#             "model": "deepseek/deepseek-r1:free", 
-#             "messages": [{"role": "user", "content": req.text}],
-#         },
-#         timeout=60
-#     ).json()
-#     return {"reply": resp["choices"][0]["message"]["content"]}
-
-
-# ## --- OpenAI (commented out) ---
-# from openai import OpenAI
-# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-# @app.post("/api/ask/openai")
-# async def ask_openai(prompt: Ask):
-#     response = client.chat.completions.create(
-#         model="gpt-4o-mini",
-#         messages=[{"role": "user", "content": prompt.text}]
-#     )
-#     return {"reply": response.choices[0].message.content}
-
-# ## --- Anthropic Claude (commented out) ---
-# import anthropic
-# claude = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-# @app.post("/api/ask/claude")
-# async def ask_claude(prompt: Ask):
-#     msg = claude.messages.create(
-#         model="claude-3-5-sonnet-latest",
-#         max_tokens=512,
-#         messages=[{"role": "user", "content": prompt.text}]
-#     )
-#     return {"reply": msg.content[0].text}
+        raise HTTPException(status_code=500, detail=f"Model request failed: {e}")
