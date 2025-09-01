@@ -1,0 +1,6 @@
+# Project-A/.gitignore
+node_modules/
+dist/
+.venv/
+__pycache__/
+.env
