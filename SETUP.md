@@ -1,168 +1,321 @@
-# Quick Setup Guide
+# 🚀 Smart Recipe Analyzer - Setup Guide
 
-This guide will help you get the AI Text Analysis application up and running in minutes.
+This guide will walk you through setting up the Smart Recipe Analyzer application step by step.
 
-## Prerequisites
+## 📋 Prerequisites
 
-- **Python 3.8+** installed on your system
-- **Node.js 18+** installed on your system
-- **Google Gemini API Key** (free tier available)
+Before you begin, ensure you have the following installed:
 
-## Step 1: Get Google Gemini API Key
+- **Python 3.8+** with pip
+- **Node.js 18+** with npm
+- **Git** (for cloning the repository)
+- **Google Gemini API Key** ([Get one here](https://makersuite.google.com/app/apikey))
 
-1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click "Create API Key"
-4. Copy the API key (you'll need it for the backend)
+## 🏗️ Project Structure
 
-## Step 2: Backend Setup
-
-### Option A: Using the startup script (Recommended)
-
-**Windows:**
-
-```bash
-start_backend.bat
+```
+Project-B/
+├── backend/                 # FastAPI backend
+│   ├── main.py             # Main API server
+│   ├── requirements.txt    # Python dependencies
+│   ├── env_template.txt    # Environment variables template
+│   └── test_recipe_analyzer.py  # Backend tests
+├── frontend/               # Vue.js frontend
+│   ├── src/
+│   │   ├── views/         # Page components
+│   │   ├── App.vue        # Main app component
+│   │   └── main.js        # App entry point
+│   └── package.json       # Node.js dependencies
+├── start_backend.bat      # Windows backend startup
+├── start_backend.py       # Cross-platform backend startup
+├── start_frontend.bat     # Windows frontend startup
+└── README.md              # Main documentation
 ```
 
-**Linux/Mac:**
+## 🔧 Step-by-Step Setup
+
+### Step 1: Clone and Navigate to Project
 
 ```bash
-python start_backend.py
+# Navigate to your desired directory
+cd /path/to/your/projects
+
+# Clone the repository (if not already done)
+git clone <repository-url>
+cd Project-B
 ```
 
-### Option B: Manual setup
+### Step 2: Backend Setup
 
-1. **Navigate to backend directory:**
-
-   ```bash
-   cd backend
-   ```
-
-2. **Create virtual environment:**
-
-   ```bash
-   python -m venv venv
-   ```
-
-3. **Activate virtual environment:**
-
-   ```bash
-   # Windows
-   venv\Scripts\activate
-
-   # Linux/Mac
-   source venv/bin/activate
-   ```
-
-4. **Install dependencies:**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. **Create .env file:**
-   Create a file named `.env` in the backend directory with:
-
-   ```
-   GOOGLE_API_KEY=your_google_gemini_api_key_here
-   ```
-
-6. **Start the server:**
-   ```bash
-   uvicorn main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-## Step 3: Frontend Setup
-
-1. **Open a new terminal and navigate to frontend directory:**
-
-   ```bash
-   cd frontend
-   ```
-
-2. **Install dependencies:**
-
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-## Step 4: Access the Application
-
-1. **Backend API:** http://127.0.0.1:8000
-2. **API Documentation:** http://127.0.0.1:8000/docs
-3. **Frontend Application:** http://localhost:5173
-
-## Testing the Setup
-
-### Test Backend
+#### 2.1 Navigate to Backend Directory
 
 ```bash
 cd backend
-python test_analysis.py
 ```
 
-### Test Frontend
+#### 2.2 Create Virtual Environment
+
+```bash
+# Windows
+python -m venv .venv
+.venv\Scripts\activate
+
+# macOS/Linux
+python -m venv .venv
+source .venv/bin/activate
+```
+
+#### 2.3 Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+#### 2.4 Set Up Environment Variables
+
+```bash
+# Copy the template
+cp env_template.txt .env
+
+# Edit .env file and add your Google Gemini API key
+# Replace 'your_google_gemini_api_key_here' with your actual API key
+```
+
+**Important:** Never commit your `.env` file to version control!
+
+#### 2.5 Test Backend Installation
+
+```bash
+# Test if everything is working
+python test_recipe_analyzer.py
+```
+
+### Step 3: Frontend Setup
+
+#### 3.1 Navigate to Frontend Directory
+
+```bash
+cd ../frontend
+```
+
+#### 3.2 Install Dependencies
+
+```bash
+npm install
+```
+
+#### 3.3 Verify Frontend Setup
+
+```bash
+# Check if all dependencies are installed
+npm list --depth=0
+```
+
+### Step 4: Start the Application
+
+#### Option A: Using Startup Scripts (Recommended)
+
+**For Backend:**
+
+```bash
+# Windows
+start_backend.bat
+
+# Cross-platform
+python start_backend.py
+```
+
+**For Frontend:**
+
+```bash
+# Windows
+start_frontend.bat
+
+# Manual
+npm run dev
+```
+
+#### Option B: Manual Startup
+
+**Backend (Terminal 1):**
+
+```bash
+cd backend
+.venv\Scripts\activate  # Windows
+# OR
+source .venv/bin/activate  # macOS/Linux
+
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Frontend (Terminal 2):**
+
+```bash
+cd frontend
+npm run dev
+```
+
+## 🌐 Access Points
+
+Once both services are running:
+
+- **Frontend Application:** http://localhost:5173
+- **Backend API:** http://localhost:8000
+- **API Documentation:** http://localhost:8000/docs
+- **Health Check:** http://localhost:8000/health
+
+## 🧪 Testing the Setup
+
+### Backend Test
+
+```bash
+cd backend
+python test_recipe_analyzer.py
+```
+
+### Frontend Test
 
 1. Open http://localhost:5173 in your browser
-2. Navigate to the Text Analysis page
-3. Enter some text and click "Analyze Text"
+2. Navigate to the recipe analyzer
+3. Enter some test ingredients (e.g., "chicken, rice, tomatoes")
+4. Click "Find Recipes" to test the AI integration
 
-## Troubleshooting
+## 🔍 Troubleshooting
 
-### Common Issues
+### Common Issues and Solutions
 
-**1. "Module not found" errors**
+#### Backend Issues
 
-- Make sure you're in the correct directory
-- Ensure virtual environment is activated
-- Run `pip install -r requirements.txt`
+**"Module not found" errors:**
 
-**2. "Connection refused" errors**
+```bash
+# Ensure virtual environment is activated
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # macOS/Linux
 
-- Check if the backend server is running on port 8000
-- Verify the frontend is trying to connect to the correct URL
+# Reinstall requirements
+pip install -r requirements.txt
+```
 
-**3. "API key not found" errors**
+**"Port already in use" error:**
 
-- Ensure the `.env` file exists in the backend directory
-- Check that the API key is correctly formatted
-- Verify the API key is valid in Google AI Studio
+```bash
+# Kill process using port 8000
+# Windows
+netstat -ano | findstr :8000
+taskkill /PID <PID> /F
 
-**4. Frontend not loading**
+# macOS/Linux
+lsof -ti:8000 | xargs kill -9
+```
 
-- Check if Node.js is installed: `node --version`
-- Ensure all dependencies are installed: `npm install`
-- Check the console for any error messages
+**API key errors:**
 
-### Getting Help
+- Verify your `.env` file exists and contains the correct API key
+- Check that the API key is valid and has sufficient quota
+- Ensure the `.env` file is in the `backend/` directory
+
+#### Frontend Issues
+
+**"Module not found" errors:**
+
+```bash
+# Remove node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**"Port already in use" error:**
+
+```bash
+# Kill process using port 5173
+# Windows
+netstat -ano | findstr :5173
+taskkill /PID <PID> /F
+
+# macOS/Linux
+lsof -ti:5173 | xargs kill -9
+```
+
+**CORS errors:**
+
+- Ensure backend is running on port 8000
+- Check that CORS is properly configured in `backend/main.py`
+
+### Debug Mode
+
+**Backend Debug:**
+
+```bash
+# Add debug logging
+export DEBUG=true  # macOS/Linux
+set DEBUG=true     # Windows
+
+# Or modify main.py to include debug logging
+```
+
+**Frontend Debug:**
+
+```bash
+# Check browser console for errors
+# Check terminal for build errors
+npm run build  # Test production build
+```
+
+## 🚀 Production Deployment
+
+### Backend Deployment
+
+1. Set production environment variables
+2. Use production ASGI server (e.g., Gunicorn)
+3. Configure reverse proxy (e.g., Nginx)
+4. Set up SSL certificates
+
+### Frontend Deployment
+
+1. Build production version: `npm run build`
+2. Deploy `dist/` folder to your hosting service
+3. Configure environment variables for production API endpoints
+
+## 📚 Additional Resources
+
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Vue.js Documentation](https://vuejs.org/)
+- [Vuetify Documentation](https://vuetifyjs.com/)
+- [Google Gemini API Documentation](https://ai.google.dev/)
+
+## 🆘 Getting Help
 
 If you encounter issues:
 
-1. Check the console/terminal for error messages
-2. Verify all prerequisites are installed
-3. Ensure both backend and frontend are running
-4. Check the API documentation at http://127.0.0.1:8000/docs
+1. **Check the troubleshooting section above**
+2. **Review the logs** in both terminal windows
+3. **Check the API documentation** at http://localhost:8000/docs
+4. **Open an issue** on the project repository
+5. **Check the browser console** for frontend errors
 
-## Next Steps
+## ✅ Verification Checklist
 
-Once everything is working:
+- [ ] Python virtual environment created and activated
+- [ ] Backend dependencies installed
+- [ ] Google Gemini API key configured in `.env`
+- [ ] Backend server running on port 8000
+- [ ] Frontend dependencies installed
+- [ ] Frontend server running on port 5173
+- [ ] Backend health check passes
+- [ ] Frontend loads without errors
+- [ ] Recipe analysis endpoint working
+- [ ] AI generates recipe suggestions
 
-1. Explore the different analysis features
-2. Try the advanced Text Analysis tool
-3. Check out the API documentation
-4. Customize the application for your needs
+---
 
-## Development
+**🎉 Congratulations!** Your Smart Recipe Analyzer is now set up and ready to use!
 
-For development:
+**Next Steps:**
 
-- Backend auto-reloads on file changes
-- Frontend hot-reloads on file changes
-- API documentation updates automatically
-- Check the console for detailed error messages
+1. Try the application with different ingredients
+2. Explore the API documentation
+3. Customize the UI or add new features
+4. Deploy to production when ready
+
+**Happy Cooking! 🍳✨**

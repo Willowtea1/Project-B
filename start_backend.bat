@@ -1,16 +1,26 @@
 @echo off
-echo 🚀 Starting Text Analysis Backend Server...
-echo 📁 Working directory: %CD%\backend
-echo 🌐 Server will be available at: http://127.0.0.1:8000
-echo 📚 API documentation: http://127.0.0.1:8000/docs
-echo ==================================================
+echo Starting Smart Recipe Analyzer Backend...
+echo.
 
 cd backend
 
-echo 💡 Make sure you have:
-echo    1. Python virtual environment activated
-echo    2. Requirements installed: pip install -r requirements.txt
-echo    3. GOOGLE_API_KEY set in .env file
+echo Activating virtual environment...
+if exist .venv\Scripts\activate.bat (
+    call .venv\Scripts\activate.bat
+) else (
+    echo Virtual environment not found. Creating one...
+    python -m venv .venv
+    call .venv\Scripts\activate.bat
+    echo Installing dependencies...
+    pip install -r requirements.txt
+)
+
+echo.
+echo Starting FastAPI server...
+echo API will be available at: http://localhost:8000
+echo API docs will be available at: http://localhost:8000/docs
+echo.
+echo Press Ctrl+C to stop the server
 echo.
 
 uvicorn main:app --reload --host 0.0.0.0 --port 8000

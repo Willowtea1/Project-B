@@ -1,209 +1,288 @@
-# AI Text Analysis Application
+# 🍳 Smart Recipe Analyzer
 
-A comprehensive web application that provides advanced text analysis capabilities including sentiment analysis, tag extraction, summarization, and categorization using Google's Gemini AI.
+A full-stack web application that uses AI to generate recipe suggestions from available ingredients. Built with Vue.js + Vuetify frontend and FastAPI backend, powered by Google Gemini AI.
 
-## Features
+## ✨ Features
 
-### 🎯 Core Analysis Capabilities
+- **Smart Ingredient Analysis**: Input your available ingredients and get AI-powered recipe suggestions
+- **Multiple Recipe Options**: Receive 2-3 different recipe ideas for each ingredient combination
+- **Detailed Instructions**: Step-by-step cooking instructions for each recipe
+- **Nutritional Information**: Complete nutritional breakdown including calories, protein, carbs, and fat
+- **Cooking Details**: Cooking time, difficulty level, and serving size for each recipe
+- **Responsive Design**: Beautiful, mobile-friendly interface built with Vuetify
+- **Copy to Clipboard**: Easy recipe sharing functionality
 
-- **Text Summarization**: Generate concise 2-3 sentence summaries
-- **Content Categorization**: Classify text into 10 categories (Business, Technology, Health, Entertainment, Education, Politics, Sports, Science, Arts, Others)
-- **Sentiment Analysis**: Determine text sentiment (Positive, Negative, Neutral) with confidence scores
-- **Tag Extraction**: Extract 5-8 relevant keywords and topics from text
-
-### 🎨 User Interface
-
-- **Modern Web Interface**: Built with Vue.js 3 and Vuetify
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Real-time Analysis**: Instant results with loading indicators
-- **Visual Feedback**: Color-coded sentiment and category indicators
-- **Navigation**: Easy switching between different analysis views
-
-## Project Structure
+## 🏗️ Architecture
 
 ```
 Project-B/
-├── backend/
-│   ├── main.py              # FastAPI backend with analysis endpoints
-│   └── requirements.txt     # Python dependencies
-└── frontend/
-    ├── src/
-    │   ├── App.vue          # Main application with navigation
-    │   ├── views/
-    │   │   ├── HomeView.vue
-    │   │   ├── ChatView.vue
-    │   │   └── TextAnalysisView.vue  # Advanced analysis interface
-    │   └── router/
-    │       └── index.js     # Vue Router configuration
-    └── package.json         # Node.js dependencies
+├── backend/                 # FastAPI backend
+│   ├── main.py             # Main API server
+│   ├── requirements.txt    # Python dependencies
+│   └── env_template.txt    # Environment variables template
+├── frontend/               # Vue.js frontend
+│   ├── src/
+│   │   ├── views/         # Page components
+│   │   │   ├── HomeView.vue
+│   │   │   └── RecipeAnalyzerView.vue
+│   │   ├── App.vue        # Main app component
+│   │   └── main.js        # App entry point
+│   └── package.json       # Node.js dependencies
+└── README.md              # This file
 ```
 
-## Setup Instructions
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.8+ and pip
+- Node.js 18+ and npm
+- Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey))
 
 ### Backend Setup
 
-1. **Navigate to backend directory**:
+1. **Navigate to backend directory:**
 
    ```bash
    cd backend
    ```
 
-2. **Create virtual environment**:
+2. **Create virtual environment:**
 
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   python -m venv .venv
+   # On Windows:
+   .venv\Scripts\activate
+   # On macOS/Linux:
+   source .venv/bin/activate
    ```
 
-3. **Install dependencies**:
+3. **Install dependencies:**
 
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Set up environment variables**:
-   Create a `.env` file in the backend directory:
+4. **Set up environment variables:**
 
-   ```
-   GOOGLE_API_KEY=your_google_gemini_api_key_here
+   ```bash
+   # Copy the template and add your API key
+   cp env_template.txt .env
+   # Edit .env and add your GOOGLE_API_KEY
    ```
 
-5. **Run the backend server**:
+5. **Start the backend server:**
+
    ```bash
    uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
 
+   The API will be available at `http://localhost:8000`
+
 ### Frontend Setup
 
-1. **Navigate to frontend directory**:
+1. **Navigate to frontend directory:**
 
    ```bash
    cd frontend
    ```
 
-2. **Install dependencies**:
+2. **Install dependencies:**
 
    ```bash
    npm install
    ```
 
-3. **Run the development server**:
+3. **Start the development server:**
 
    ```bash
    npm run dev
    ```
 
-4. **Access the application**:
-   Open your browser and go to `http://localhost:5173`
+   The app will be available at `http://localhost:5173`
 
-## API Endpoints
+## 🔧 API Endpoints
 
-### POST /analyze
+### Recipe Analysis
 
-Analyzes text and returns comprehensive results.
+- **POST** `/analyze-recipes`
+  - **Request Body:**
+    ```json
+    {
+      "ingredients": "chicken breast, rice, tomatoes, garlic"
+    }
+    ```
+  - **Response:**
+    ```json
+    {
+      "recipes": [
+        {
+          "name": "Garlic Butter Chicken with Rice",
+          "ingredients": [
+            "chicken breast",
+            "rice",
+            "garlic",
+            "butter",
+            "salt",
+            "pepper"
+          ],
+          "instructions": [
+            "Season chicken...",
+            "Cook rice...",
+            "Sauté garlic..."
+          ],
+          "cooking_time": "25 minutes",
+          "difficulty": "Easy",
+          "nutrition": {
+            "calories": 450,
+            "protein": "35g",
+            "carbs": "45g",
+            "fat": "18g",
+            "fiber": "3g"
+          },
+          "servings": 2
+        }
+      ]
+    }
+    ```
 
-**Request Body**:
+### Health Check
 
-```json
-{
-  "text": "Your text to analyze here"
-}
+- **GET** `/health` - API health status
+- **GET** `/` - API information and available endpoints
+
+## 🎯 Usage Examples
+
+### Example 1: Basic Ingredients
+
+**Input:** `chicken, rice, vegetables`
+**Result:** Multiple recipe suggestions including stir-fry, rice bowls, and soup variations
+
+### Example 2: Pantry Staples
+
+**Input:** `pasta, tomato sauce, cheese, garlic`
+**Result:** Classic pasta dishes, baked pasta, and quick pasta salads
+
+### Example 3: Breakfast Ingredients
+
+**Input:** `eggs, bread, milk, cheese`
+**Result:** French toast, scrambled eggs, breakfast sandwiches, and quiches
+
+## 🛠️ Development
+
+### Backend Development
+
+- **Framework:** FastAPI with Pydantic models
+- **AI Integration:** Google Gemini 1.5 Flash model
+- **Validation:** Request/response validation with Pydantic
+- **Error Handling:** Comprehensive error handling with user-friendly messages
+
+### Frontend Development
+
+- **Framework:** Vue 3 with Composition API
+- **UI Library:** Vuetify 3 with Material Design
+- **State Management:** Vue reactive system
+- **HTTP Client:** Axios for API communication
+
+### Code Structure
+
+- **Components:** Reusable Vue components with proper props and events
+- **Views:** Page-level components with routing
+- **API Service:** Centralized API communication layer
+- **Error Handling:** User-friendly error messages and loading states
+
+## 🚀 Deployment
+
+### Backend Deployment
+
+- **Platform:** Railway, Fly.io, or Heroku
+- **Environment Variables:** Set `GOOGLE_API_KEY` in production
+- **Requirements:** Install from `requirements.txt`
+
+### Frontend Deployment
+
+- **Platform:** Vercel, Netlify, or GitHub Pages
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist/`
+
+## 🔒 Security Considerations
+
+- **API Key Protection:** Never commit API keys to version control
+- **Input Validation:** All user inputs are validated on both frontend and backend
+- **CORS Configuration:** Properly configured for development and production
+- **Rate Limiting:** Consider implementing rate limiting for production use
+
+## 🧪 Testing
+
+### Backend Testing
+
+```bash
+cd backend
+python -m pytest test_*.py
 ```
 
-**Response**:
+### Frontend Testing
 
-```json
-{
-  "summary": "A concise summary of the text",
-  "category": "Technology",
-  "sentiment": "Positive",
-  "sentiment_score": 0.8,
-  "tags": [
-    "artificial intelligence",
-    "machine learning",
-    "technology",
-    "innovation",
-    "future"
-  ]
-}
+```bash
+cd frontend
+npm run test
 ```
 
-### GET /health
-
-Health check endpoint to verify service status.
-
-## Usage
-
-### Basic Analysis (Home Page)
-
-1. Navigate to the home page (`/`)
-2. Enter your text in the textarea
-3. Click "Analyze Text" to get summary and category
-
-### Advanced Analysis (Text Analysis Tool)
-
-1. Navigate to the Text Analysis page (`/analyze`)
-2. Enter your text in the larger textarea
-3. Click "Analyze Text" to get comprehensive results including:
-   - Summary
-   - Category with color coding
-   - Sentiment analysis with progress bar
-   - Extracted tags as chips
-
-## Technologies Used
-
-### Backend
-
-- **FastAPI**: Modern Python web framework
-- **Google Gemini AI**: Advanced language model for text analysis
-- **Pydantic**: Data validation and serialization
-- **Uvicorn**: ASGI server
-
-### Frontend
-
-- **Vue.js 3**: Progressive JavaScript framework
-- **Vuetify**: Material Design component library
-- **Vue Router**: Client-side routing
-- **Axios**: HTTP client for API communication
-
-## Features in Detail
-
-### Sentiment Analysis
-
-- **Three Categories**: Positive, Negative, Neutral
-- **Confidence Scoring**: -1.0 to 1.0 scale
-- **Visual Indicators**: Color-coded chips and progress bars
-
-### Content Categorization
-
-- **10 Categories**: Comprehensive classification system
-- **Color Coding**: Each category has a distinct color
-- **Smart Classification**: AI-powered category selection
-
-### Tag Extraction
-
-- **Keyword Identification**: Extracts 5-8 relevant tags
-- **Topic Discovery**: Identifies main themes and subjects
-- **Visual Display**: Tags displayed as interactive chips
-
-### Text Summarization
-
-- **Concise Output**: 2-3 sentence summaries
-- **Key Point Extraction**: Captures main ideas
-- **Clear Language**: Easy-to-understand summaries
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## License
+## 📝 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Support
+## 🙏 Acknowledgments
 
-For support or questions, please open an issue in the repository.
+- **Google Gemini AI** for providing the AI capabilities
+- **Vuetify** for the beautiful Material Design components
+- **FastAPI** for the high-performance backend framework
+- **Vue.js** for the progressive frontend framework
+
+## 📞 Support
+
+If you encounter any issues or have questions:
+
+1. Check the troubleshooting section below
+2. Review the API documentation at `/docs` when the backend is running
+3. Open an issue on GitHub
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Backend won't start:**
+
+- Ensure Python virtual environment is activated
+- Check that all dependencies are installed
+- Verify your `.env` file has the correct API key
+
+**Frontend won't start:**
+
+- Ensure Node.js version is 18+ or 20+
+- Delete `node_modules` and run `npm install` again
+- Check for any console errors
+
+**API calls failing:**
+
+- Verify backend is running on port 8000
+- Check CORS configuration
+- Ensure Google Gemini API key is valid
+
+**Recipe generation issues:**
+
+- Check API key has sufficient quota
+- Verify ingredient input format
+- Review backend logs for detailed error messages
+
+---
+
+**Happy Cooking! 🍳✨**

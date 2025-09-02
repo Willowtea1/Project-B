@@ -8,14 +8,15 @@ from dotenv import load_dotenv
 import json
 import re
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+from typing import List, Optional
 
 load_dotenv()
 
-app = FastAPI()
+app = FastAPI(title="Smart Recipe Analyzer API", version="1.0.0")
 
 origins = [
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "http://localhost:3000"
 ]
 
 app.add_middleware(
@@ -29,17 +30,31 @@ app.add_middleware(
 # Configure Gemini API key
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-# Request model
-class AnalyzeRequest(BaseModel):
-    text: str
+# Request model for recipe analysis
+class RecipeRequest(BaseModel):
+    ingredients: str
+
+# Nutritional information model
+class NutritionInfo(BaseModel):
+    calories: int
+    protein: str
+    carbs: str
+    fat: str
+    fiber: Optional[str] = None
+
+# Recipe model
+class Recipe(BaseModel):
+    name: str
+    ingredients: List[str]
+    instructions: List[str]
+    cooking_time: str
+    difficulty: str
+    nutrition: NutritionInfo
+    servings: int = 2
 
 # Response model
-class AnalyzeResponse(BaseModel):
-    summary: str
-    category: str
-    sentiment: str
-    sentiment_score: float
-    tags: List[str]
+class RecipeResponse(BaseModel):
+    recipes: List[Recipe]
 
 # Helper function to extract JSON safely from LLM output
 def extract_json(text: str) -> dict:
@@ -52,37 +67,54 @@ def extract_json(text: str) -> dict:
         raise ValueError("No JSON object found in the model output")
     return json.loads(match.group())
 
-# Endpoint
-@app.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_text(req: AnalyzeRequest):
-    if not req.text.strip():
-        raise HTTPException(status_code=400, detail="Text cannot be empty")
+# Recipe analysis endpoint
+@app.post("/analyze-recipes", response_model=RecipeResponse)
+async def analyze_recipes(req: RecipeRequest):
+    if not req.ingredients.strip():
+        raise HTTPException(status_code=400, detail="Ingredients list cannot be empty")
 
     prompt = f"""
-    You are an AI assistant specialized in text analysis. Given the following text, provide a comprehensive analysis including:
-
-    1. A concise summary (2-3 sentences)
-    2. Classification into one of these categories: Business, Technology, Health, Entertainment, Education, Politics, Sports, Science, Arts, Others
-    3. Sentiment analysis (Positive, Negative, Neutral) with a confidence score between -1.0 and 1.0
-    4. Key tags/topics extracted from the text (5-8 relevant tags)
-
-    Text to analyze:
-    {req.text}
-
-    Respond **ONLY** in JSON format like this:
+    You are a professional chef and nutritionist. Given the following ingredients, decides if it is a valid cooking ingredient, if not then fallback to error. If it is a valid cooking ingredient, then create 3 delicious recipe suggestions.
+    
+    Available ingredients: {req.ingredients}
+    
+    For each recipe, provide:
+    1. A creative recipe name
+    2. List of ingredients needed (including the provided ingredients plus any common pantry staples)
+    3. Step-by-step cooking instructions
+    4. Estimated cooking time
+    5. Difficulty level (Easy, Medium, Hard)
+    6. Nutritional information per serving
+    7. Number of servings
+    
+    Respond **ONLY** in this exact JSON format:
     {{
-        "summary": "A concise summary of the text",
-        "category": "One of the specified categories",
-        "sentiment": "Positive/Negative/Neutral",
-        "sentiment_score": 0.8,
-        "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
+        "recipes": [
+            {{
+                "name": "Recipe Name",
+                "ingredients": ["ingredient1", "ingredient2", "ingredient3"],
+                "instructions": ["Step 1", "Step 2", "Step 3"],
+                "cooking_time": "X minutes",
+                "difficulty": "Easy/Medium/Hard",
+                "nutrition": {{
+                    "calories": 350,
+                    "protein": "15g",
+                    "carbs": "45g",
+                    "fat": "12g",
+                    "fiber": "5g"
+                }},
+                "servings": 2
+            }}
+        ]
     }}
-
+    
     Guidelines:
-    - Sentiment score: -1.0 (very negative) to 1.0 (very positive)
-    - Tags should be relevant keywords or topics from the text
-    - Category should be the most appropriate from the given list
-    - Summary should capture the main points clearly
+    - Use the provided ingredients as the main components
+    - Add common pantry staples (salt, pepper, oil, etc.) as needed
+    - Make instructions clear and beginner-friendly
+    - Ensure nutritional info is realistic and balanced
+    - Cooking time should be reasonable for home cooking
+    - Difficulty should match the complexity of the recipe
     """
 
     try:
@@ -95,13 +127,24 @@ async def analyze_text(req: AnalyzeRequest):
         # Safely extract JSON
         result = extract_json(response.text)
 
-        return AnalyzeResponse(
-            summary=result["summary"], 
-            category=result["category"],
-            sentiment=result["sentiment"],
-            sentiment_score=result["sentiment_score"],
-            tags=result["tags"]
-        )
+        # Validate the response structure
+        if "recipes" not in result or not isinstance(result["recipes"], list):
+            raise ValueError("Invalid response structure: missing recipes array")
+
+        # Convert to RecipeResponse
+        recipes = []
+        for recipe_data in result["recipes"]:
+            try:
+                recipe = Recipe(**recipe_data)
+                recipes.append(recipe)
+            except Exception as e:
+                print(f"Error parsing recipe: {e}")
+                continue
+
+        if not recipes:
+            raise ValueError("No valid recipes could be parsed from the response")
+
+        return RecipeResponse(recipes=recipes)
 
     except ValueError as ve:
         raise HTTPException(status_code=500, detail=f"Failed to parse model output: {ve}")
@@ -111,19 +154,16 @@ async def analyze_text(req: AnalyzeRequest):
 # Health check endpoint
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "message": "Text analysis service is running"}
+    return {"status": "healthy", "message": "Smart Recipe Analyzer API is running"}
 
-#Gemini Chat endpoint
-class ChatRequest(BaseModel):
-    text: str
-
-@app.post("/chat")
-async def chat(req: ChatRequest):
-    try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(req.text)
-
-        # The Gemini response is usually text
-        return {"reply": response.text}
-    except Exception as e:
-        return {"error": str(e)}
+# Root endpoint
+@app.get("/")
+async def root():
+    return {
+        "message": "Smart Recipe Analyzer API",
+        "version": "1.0.0",
+        "endpoints": {
+            "analyze_recipes": "/analyze-recipes",
+            "health": "/health"
+        }
+    }
