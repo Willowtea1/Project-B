@@ -1,23 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import AppView from '../App.vue' // your current summary page
-import HomeView from '../views/HomeView.vue' // placeholder
-import ChatView from '../views/ChatView.vue' // placeholder
+import HomeView from '../views/HomeView.vue' // Home page with text analysis
+import ChatView from '../views/ChatView.vue' // Chat interface
+import TextAnalysisView from '../views/TextAnalysisView.vue' // Advanced text analysis view
 
 const routes = [
   {
     path: '/',
-    name: 'summary',
-    component: AppView, // App.vue stays here
-  },
-  {
-    path: '/home',
     name: 'home',
-    component: HomeView, // ready for future
+    component: HomeView, // Home page as default
   },
   {
     path: '/chat',
     name: 'chat',
-    component: ChatView, // ready for future
+    component: ChatView, // Chat interface
+  },
+  {
+    path: '/analyze',
+    name: 'analyze',
+    component: TextAnalysisView, // Advanced text analysis view
   },
 ]
 

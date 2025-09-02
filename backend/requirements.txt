@@ -3,3 +3,5 @@ uvicorn
 openai 
 pydantic[dotenv] 
 python-dotenv
+google-generativeai
+requests

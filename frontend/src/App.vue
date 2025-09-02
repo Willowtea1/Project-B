@@ -2,53 +2,31 @@
 
 <template>
   <v-app>
-    <v-container>
-      <v-textarea
-        label="Enter text to summarize and categorize"
-        v-model="text"
-        rows="6"
-      ></v-textarea>
-      <v-btn color="primary" @click="submitText">Analyze</v-btn>
+    <!-- Navigation -->
+    <v-app-bar app color="primary" dark>
+      <v-app-bar-title>AI Text Analysis</v-app-bar-title>
+      <v-spacer></v-spacer>
+      <v-btn to="/" text>Home</v-btn>
+      <v-btn to="/analyze" text>Text Analysis</v-btn>
+      <v-btn to="/chat" text>Chat</v-btn>
+    </v-app-bar>
 
-      <div v-if="loading">Processing...</div>
-
-      <v-card v-if="result">
-        <v-card-title>Summary</v-card-title>
-        <v-card-text>{{ result.summary }}</v-card-text>
-        <v-card-title>Category</v-card-title>
-        <v-card-text>{{ result.category }}</v-card-text>
-      </v-card>
-    </v-container>
+    <!-- Main Content with Router View -->
+    <v-main>
+      <router-view />
+    </v-main>
   </v-app>
 </template>
 
 <script>
-import axios from 'axios'
-
 export default {
-  data() {
-    return {
-      text: '',
-      result: null,
-      loading: false,
-    }
-  },
-  methods: {
-    async submitText() {
-      if (!this.text.trim()) return alert('Text cannot be empty')
-      this.loading = true
-      try {
-        const res = await axios.post('http://127.0.0.1:8000/analyze', {
-          text: this.text,
-        })
-        this.result = res.data
-      } catch (err) {
-        console.error(err)
-        alert('Error processing text')
-      } finally {
-        this.loading = false
-      }
-    },
-  },
+  name: 'App',
 }
 </script>
+
+<style>
+.v-main {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+</style>
