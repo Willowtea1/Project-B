@@ -1,29 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import AppView from '../App.vue' // your current summary page
-import HomeView from '../views/HomeView.vue' // placeholder
-import ChatView from '../views/ChatView.vue' // placeholder
-
-const routes = [
-  {
-    path: '/',
-    name: 'summary',
-    component: AppView, // App.vue stays here
-  },
-  {
-    path: '/home',
-    name: 'home',
-    component: HomeView, // ready for future
-  },
-  {
-    path: '/chat',
-    name: 'chat',
-    component: ChatView, // ready for future
-  },
-]
+import HomeView from '../views/HomeView.vue'
+import RecipeAnalyzerView from '../views/RecipeAnalyzerView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes,
+  routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: HomeView,
+    },
+    {
+      path: '/recipes',
+      name: 'recipes',
+      component: RecipeAnalyzerView,
+    },
+  ],
 })
 
 export default router
