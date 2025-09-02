@@ -74,14 +74,123 @@
 
     <!-- Results Section -->
     <div v-if="recipes.length > 0">
+      <!-- Nutrition Filter Panel -->
+      <v-card class="mb-4" variant="outlined">
+        <v-card-title class="text-subtitle-1 d-flex align-center">
+          <v-icon start>mdi-tune-variant</v-icon>
+          Filter by nutrition (per serving)
+          <v-spacer></v-spacer>
+          <v-chip size="small" v-if="activeFilterCount > 0" color="primary" variant="tonal">
+            {{ activeFilterCount }} active
+          </v-chip>
+        </v-card-title>
+        <v-card-text>
+          <v-row class="mb-2">
+            <v-col cols="12">
+              <div class="text-subtitle-2 mb-2">Quick presets</div>
+              <div class="d-flex flex-wrap">
+                <v-chip
+                  v-for="preset in presets"
+                  :key="preset.key"
+                  class="ma-1"
+                  size="small"
+                  :color="appliedPreset === preset.key ? 'primary' : ''"
+                  :variant="appliedPreset === preset.key ? 'elevated' : 'outlined'"
+                  @click="applyPreset(preset.key)"
+                >
+                  <v-icon start size="small">mdi-flash</v-icon>
+                  {{ preset.label }}
+                </v-chip>
+                <v-chip class="ma-1" size="small" variant="outlined" @click="clearPreset">
+                  <v-icon start size="small">mdi-close</v-icon>
+                  Clear preset
+                </v-chip>
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-row>
+            <v-col cols="12" sm="6" md="3">
+              <v-text-field
+                v-model.number="filters.caloriesMax"
+                type="number"
+                label="Max Calories"
+                variant="outlined"
+                density="comfortable"
+                clearable
+                min="0"
+              />
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+              <v-text-field
+                v-model.number="filters.proteinMin"
+                type="number"
+                label="Min Protein (g)"
+                variant="outlined"
+                density="comfortable"
+                clearable
+                min="0"
+              />
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+              <v-text-field
+                v-model.number="filters.carbsMax"
+                type="number"
+                label="Max Carbs (g)"
+                variant="outlined"
+                density="comfortable"
+                clearable
+                min="0"
+              />
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+              <v-text-field
+                v-model.number="filters.fatMax"
+                type="number"
+                label="Max Fat (g)"
+                variant="outlined"
+                density="comfortable"
+                clearable
+                min="0"
+              />
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" sm="6" md="3">
+              <v-text-field
+                v-model.number="filters.fiberMin"
+                type="number"
+                label="Min Fiber (g)"
+                variant="outlined"
+                density="comfortable"
+                clearable
+                min="0"
+              />
+            </v-col>
+            <v-col cols="12" sm="6" md="3" class="d-flex align-end">
+              <v-btn color="primary" variant="flat" class="me-2" @click="resetFilters">
+                <v-icon start>mdi-backspace</v-icon>
+                Reset
+              </v-btn>
+              <v-btn color="secondary" variant="outlined" @click="clearPresetAndFilters">
+                <v-icon start>mdi-close-circle-outline</v-icon>
+                Clear all
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+
       <v-row class="mb-4">
         <v-col cols="12">
-          <h2 class="text-h4 font-weight-bold">🎯 Recipe Suggestions ({{ recipes.length }})</h2>
+          <h2 class="text-h4 font-weight-bold">
+            🎯 Recipe Suggestions ({{ filteredRecipes.length }} of {{ recipes.length }})
+          </h2>
         </v-col>
       </v-row>
 
       <v-row>
-        <v-col v-for="(recipe, index) in recipes" :key="index" cols="12" md="6" lg="4">
+        <v-col v-for="(recipe, index) in filteredRecipes" :key="index" cols="12" md="6" lg="4">
           <v-card class="recipe-card h-100" elevation="4">
             <v-card-title class="bg-primary text-white title-wrap">
               <v-icon start>mdi-food</v-icon>
@@ -232,7 +341,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
 
 // Reactive data
@@ -244,6 +353,65 @@ const form = ref(null)
 
 // Ratings state keyed by recipe identity
 const ratings = ref({})
+
+// Nutrition filters
+const filters = reactive({
+  caloriesMax: null,
+  proteinMin: null,
+  carbsMax: null,
+  fatMax: null,
+  fiberMin: null,
+})
+
+const presets = [
+  { key: 'lowCal', label: 'Low Calorie (<= 400 cal)', set: () => (filters.caloriesMax = 400) },
+  { key: 'highProt', label: 'High Protein (>= 25g)', set: () => (filters.proteinMin = 25) },
+  { key: 'lowCarb', label: 'Low Carb (<= 30g)', set: () => (filters.carbsMax = 30) },
+  { key: 'lowFat', label: 'Low Fat (<= 15g)', set: () => (filters.fatMax = 15) },
+  { key: 'highFiber', label: 'High Fiber (>= 6g)', set: () => (filters.fiberMin = 6) },
+]
+
+const appliedPreset = ref(null)
+
+const applyPreset = (key) => {
+  clearFilters()
+  const p = presets.find((x) => x.key === key)
+  if (p) {
+    p.set()
+    appliedPreset.value = key
+  }
+}
+
+const clearPreset = () => {
+  appliedPreset.value = null
+}
+
+const resetFilters = () => {
+  clearFilters()
+}
+
+const clearFilters = () => {
+  filters.caloriesMax = null
+  filters.proteinMin = null
+  filters.carbsMax = null
+  filters.fatMax = null
+  filters.fiberMin = null
+}
+
+const clearPresetAndFilters = () => {
+  clearPreset()
+  clearFilters()
+}
+
+const activeFilterCount = computed(() => {
+  return [
+    filters.caloriesMax,
+    filters.proteinMin,
+    filters.carbsMax,
+    filters.fatMax,
+    filters.fiberMin,
+  ].filter((v) => v !== null && v !== undefined && v !== '').length
+})
 
 // Form validation rules
 const rules = reactive({
@@ -377,6 +545,36 @@ const resetForm = () => {
     form.value.reset()
   }
 }
+
+// Computed filtered recipes
+const parseGrams = (value) => {
+  // Accept numbers or strings like "25g"
+  if (value === null || value === undefined || value === '') return null
+  if (typeof value === 'number') return value
+  const m = String(value).match(/\d+(?:\.\d+)?/)
+  return m ? Number(m[0]) : null
+}
+
+const filteredRecipes = computed(() => {
+  if (activeFilterCount.value === 0) return recipes.value
+
+  return recipes.value.filter((r) => {
+    const n = r.nutrition || {}
+    const cal = parseGrams(n.calories)
+    const prot = parseGrams(n.protein)
+    const carb = parseGrams(n.carbs)
+    const fat = parseGrams(n.fat)
+    const fib = parseGrams(n.fiber)
+
+    if (filters.caloriesMax != null && cal != null && cal > filters.caloriesMax) return false
+    if (filters.proteinMin != null && prot != null && prot < filters.proteinMin) return false
+    if (filters.carbsMax != null && carb != null && carb > filters.carbsMax) return false
+    if (filters.fatMax != null && fat != null && fat > filters.fatMax) return false
+    if (filters.fiberMin != null && fib != null && fib < filters.fiberMin) return false
+
+    return true
+  })
+})
 </script>
 
 <style scoped>
