@@ -89,6 +89,20 @@
             </v-card-title>
 
             <v-card-text class="pt-4">
+              <!-- Rating -->
+              <div class="d-flex align-center mb-3">
+                <v-rating
+                  v-model="ratings[getRecipeKey(recipe)]"
+                  color="amber"
+                  size="24"
+                  density="comfortable"
+                  @update:model-value="onRate(recipe, ratings[getRecipeKey(recipe)])"
+                ></v-rating>
+                <span class="ms-2 text-medium-emphasis"
+                  >{{ ratings[getRecipeKey(recipe)] || 0 }}/5</span
+                >
+              </div>
+
               <!-- Recipe Meta Info -->
               <v-row class="mb-4">
                 <v-col cols="6">
@@ -218,7 +232,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import axios from 'axios'
 
 // Reactive data
@@ -228,6 +242,9 @@ const loading = ref(false)
 const error = ref('')
 const form = ref(null)
 
+// Ratings state keyed by recipe identity
+const ratings = ref({})
+
 // Form validation rules
 const rules = reactive({
   required: (v) => !!v || 'Ingredients are required',
@@ -235,6 +252,42 @@ const rules = reactive({
 
 // API configuration
 const API_BASE_URL = 'http://localhost:8000'
+
+// Persist/load ratings
+const RATINGS_STORAGE_KEY = 'recipe_ratings_v1'
+
+const loadRatings = () => {
+  try {
+    const raw = localStorage.getItem(RATINGS_STORAGE_KEY)
+    ratings.value = raw ? JSON.parse(raw) : {}
+  } catch {
+    ratings.value = {}
+  }
+}
+
+const saveRatings = () => {
+  try {
+    localStorage.setItem(RATINGS_STORAGE_KEY, JSON.stringify(ratings.value))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+const getRecipeKey = (recipe) => {
+  // Build a stable key using name + first ingredients signature
+  const ingSig = Array.isArray(recipe.ingredients)
+    ? recipe.ingredients.slice(0, 5).join('|').toLowerCase()
+    : ''
+  return `${recipe.name}`.toLowerCase() + '::' + ingSig
+}
+
+const onRate = (recipe, value) => {
+  const key = getRecipeKey(recipe)
+  ratings.value = { ...ratings.value, [key]: value }
+  saveRatings()
+}
+
+onMounted(loadRatings)
 
 // Methods
 const analyzeRecipes = async () => {
@@ -253,6 +306,14 @@ const analyzeRecipes = async () => {
     })
 
     recipes.value = response.data.recipes
+    // Pre-hydrate ratings for newly shown recipes
+    for (const r of recipes.value) {
+      const k = getRecipeKey(r)
+      if (!(k in ratings.value)) {
+        ratings.value[k] = 0
+      }
+    }
+    saveRatings()
   } catch (err) {
     console.error('Error analyzing recipes:', err)
     if (err.response?.data?.detail) {
